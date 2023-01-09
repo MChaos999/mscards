@@ -1,0 +1,8 @@
+{
+    "name" : "CodeigniterStart",
+    "description" : "",
+    "require": {
+        "jasongrimes/paginator": "^1.0",
+        "phpoffice/phpspreadsheet": "^1.14"
+    }
+}
