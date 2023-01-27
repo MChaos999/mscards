@@ -135,7 +135,7 @@ if(!function_exists('unlink_files')) {
 
 if (!function_exists('verify_img_extension')) {
     function verify_img_extension($ext) {
-        $file_types = array('.jpg', '.jpeg', '.gif', '.png', '.svg');
+        $file_types = array('.jpg', '.jpeg', '.gif', '.png', '.svg', '.pdf', '.doc');
         if (in_array(strtolower($ext), $file_types)) {return true;} else {return false;}
     }
 }
@@ -289,6 +289,11 @@ if (!function_exists('get_language_for_admin')) {
         return ($up) ? 'RU' : 'ru';
     }
 }
+if (!function_exists('get_language_for_list')) {
+    function get_language_for_list($up = FALSE) {
+        return ($up) ? 'RO' : 'ro';
+    }
+}
 
 if (!function_exists('select_language')) {
     function select_language($lang = FALSE, $langs_array = FALSE)
@@ -304,13 +309,25 @@ if (!function_exists('select_language')) {
 
         $current_lang = strtolower($lang);
 
-        //unset($langs_array[$current_lang]);
+        foreach ($langs_array as $lang => $item) {
+
+            switch ($lang) {
+                case 'en':
+                    $name = 'EN';
+                    break;
+                case 'ro':
+                    $name = 'RO';
+                    break;
+            }
+            $lang_title[$lang] = $name;
+        }
 
         $CI->load->view('layouts/pages/langs',
             array(  'langs_array' => $langs_array,
                 'protocol' => $protocol,
                 'host' => $host,
                 'get_data' => $get_data,
+                'lang_title' => $lang_title,
                 'current_lang' => $current_lang));
     }
 }
@@ -666,7 +683,6 @@ if (!function_exists('categories_map')) {
                 $result[$object->id]->title = $object->title;
                 $result[$object->id]->uri = $object->uri;
                 $result[$object->id]->onMain = $object->onMain;
-                $result[$object->id]->min_price = $object->min_price;
                 $result[$object->id]->img = $object->img;
                 $result[$object->id]->children = categories_map($objects, $object->id, false);
             }
@@ -696,6 +712,7 @@ if (!function_exists('admin_categories_tree')) {
             if ($item->parent_id == $parent_id) {
                 $cmod = (!empty($item->isShown)) ? 'checked' : '';
                 $cmod2 = (!empty($item->onMain)) ? 'checked' : '';
+                $cmod3 = (!empty($item->onPromotion)) ? 'checked' : '';
                 $self_class = 'treegrid-' . $item->id;
                 $parent_class = ($parent_id != 0) ? 'treegrid-parent-' . $parent_id : '';
                 echo '
@@ -705,7 +722,7 @@ if (!function_exists('admin_categories_tree')) {
                         class="form-control text-center sorder" value="' . $item->sorder . '"
                         name="so[' . $item->id . ']">
                         <a style="font-weight: 900;"
-                            href="' . $e_path . $item->id . '">' . $item->{'title'.get_language_for_admin(true)} . '</a></td>
+                            href="' . $e_path . $item->id . '">' . $item->{'title'.get_language_for_list(true)} . '</a></td>
                         <td class="align-middle" >
                             <label class="mt-checkbox mt-checkbox-outline">
                                 <input type="checkbox" ' . $cmod . ' value="' . $item->id . '" data-table="categories" data-col="isShown"
@@ -713,6 +730,13 @@ if (!function_exists('admin_categories_tree')) {
                                 <span></span>
                             </label>
                         </td> 
+                        <td class="align-middle" >
+                            <label class="mt-checkbox mt-checkbox-outline">
+                                <input type="checkbox" ' . $cmod3 . ' value="' . $item->id . '" data-table="categories" data-col="onPromotion"
+                                class="mine_change_check"> '  . lang('Show on Promotion'). '
+                                <span></span>
+                            </label>
+                        </td>
                         <td class="align-middle" >
                             <label class="mt-checkbox mt-checkbox-outline">
                                 <input type="checkbox" ' . $cmod2 . ' value="' . $item->id . '" data-table="categories" data-col="onMain"
@@ -780,12 +804,12 @@ if (!function_exists('admin_categories_tree_with_products')) {
                 if(!in_array($item->id, $ids)){
                     echo '
                     <tr class="' . $self_class . ' ' . $parent_class . '">
-                        <td colspan="7" class="align-middle"><span class="caption-subject bold font-grey-gallery uppercase">' . $item->{'title'.get_language_for_admin(true)}.'</span></td>
+                        <td colspan="7" class="align-middle"><span class="caption-subject bold font-grey-gallery uppercase">' . $item->{'title'.get_language_for_list(true)}.'</span></td>
                     </tr>';
                 } else {
                     echo '
                     <tr class="' . $self_class . ' ' . $parent_class . '">
-                        <td colspan="7" class="align-middle"><span class="caption-subject bold font-grey-gallery uppercase">' . $item->{'title'.get_language_for_admin(true)}.'</span>
+                        <td colspan="7" class="align-middle"><span class="caption-subject bold font-grey-gallery uppercase">' . $item->{'title'.get_language_for_list(true)}.'</span>
                             <a style="float:right" data-id="'.$item->id.'" class="category_ajax" href="/"><i class="fa fa-plus"></i>&nbsp;<span>'  . lang('Show products'). '</span></a>
                         
                             <table class="table table-hover table-hide" style="margin-top:10px;">
@@ -804,7 +828,7 @@ if (!function_exists('admin_categories_tree_with_products')) {
                                                 class="form-control text-center sorder" value="' . $object->sorder . '"
                                                 name="so[' . $object->id . ']">
                                         <a style="font-weight: 900;"
-                                            href="' . $e_path . $object->id . '">' . $object->{'title'.get_language_for_admin(true)} . '</a></td>
+                                            href="' . $e_path . $object->id . '">' . $object->{'title'.get_language_for_list(true)} . '</a></td>
                                         <td class="align-middle">
                                                 <label class="mt-checkbox mt-checkbox-outline">
                                                     <input data-col="isShown" data-table="'.$table.'" type="checkbox" '.$cmod1.' value="'.$object->id.'"
@@ -848,7 +872,7 @@ if (!function_exists('admin_categories_map')) {
                 $result[$object->id] = (object) array();
                 $result[$object->id]->id = $object->id;
                 $result[$object->id]->parent_id = $object->parent_id;
-                $result[$object->id]->{'title'.get_language_for_admin(true)} = $object->{'title'.get_language_for_admin(true)};
+                $result[$object->id]->{'title'.get_language_for_list(true)} = $object->{'title'.get_language_for_list(true)};
                 $result[$object->id]->children = admin_categories_map($objects, $object->id);
             }
         }
@@ -868,7 +892,7 @@ if (!function_exists('admin_categories_json')) {
                 $selected = ($object->id == $parent_id) ? true : false;
                 $disabled = ($object->id == $id) ? true : false;
 
-                $result .= "{text:'".$object->{'title'.get_language_for_admin(true)}."',state:{selected:'".$selected."',disabled:'".$disabled."'}, id:".$object->id.", children:[".json_encode($child, JSON_UNESCAPED_UNICODE)."]},";
+                $result .= "{text:'".$object->{'title'.get_language_for_list(true)}."',state:{selected:'".$selected."',disabled:'".$disabled."'}, id:".$object->id.", children:[".json_encode($child, JSON_UNESCAPED_UNICODE)."]},";
             }
         }
 

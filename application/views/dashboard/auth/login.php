@@ -65,7 +65,7 @@ License: You must have a valid license purchased only from themeforest(the above
 
         <div class="form-group text-center">
             <a href="http://www.ilab.md/" target="_blank">
-                <img src="/dist/img/logo500.png" width="190">
+                <img src="/app/img/logo500.png" width="190">
             </a>
         </div>
         <?php if (!empty($_SESSION['error_message'])) : ?>

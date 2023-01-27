@@ -46,6 +46,7 @@ class FrontEndController extends CI_Controller
         parent::__construct();
 
         @session_start();
+        $this->load->library(['cart']);
 
         date_default_timezone_set('Europe/Bucharest');
         header('Content-type: text/html; charset=utf-8');
@@ -90,6 +91,12 @@ class FrontEndController extends CI_Controller
         $this->load->library('user_agent');
         $this->data['is_mobile'] = $this->agent->is_mobile();
 
+        $this->categories_nav();
+
+        //        cart
+        $this->data['total_items_cart'] = $this->cart->total_items();
+        $this->data['total_price_cart'] = $this->cart->total();
+
         $this->data['uri1'] = $this->uri1;
         $this->data['uri2'] = $this->uri2;
         $this->data['uri3'] = $this->uri3;
@@ -104,11 +111,46 @@ class FrontEndController extends CI_Controller
         $this->data['without_get_url'] = $this->without_get_url;
         $this->data['full_url'] = $this->full_url;
         $this->data['menu'] = $menu;
+
+        $this->ilab_info();
     }
 
     protected function _render()
     {
         $this->load->vars($this->data);
         $this->load->view($this->layout_path);
+    }
+
+    private function ilab_info(){
+        if ($this->clang == 'RU') {
+            $ilab = 'Разработка сайта - ilab.ro';
+            $ilab_linc = 'https://ilab.ro/';
+        } elseif ($this->clang == 'EN'){
+            $ilab = 'Site development - ilab.ro';
+            $ilab_linc = 'https://ilab.ro/en';
+        } else {
+            $ilab = 'Elaborarea siteului - ilab.ro';
+            $ilab_linc = 'https://ilab.ro';
+        }
+        $this->data['ilab'] = $ilab;
+        $this->data['ilab_linc'] = $ilab_linc;
+    }
+
+    private function categories_nav(){
+        $this->load->model('categories_model');
+
+        //        $this->load->driver('cache', array('adapter' => 'apc', 'backup' => 'file'));
+//        if(!$categories = $this->cache->get('categories'.$this->clang)) {
+//            $categories = $this->categories_model->get_category_menu($this->clang);
+//            $categories = categories_map($categories);
+//            $this->cache->save('categories'.$this->clang, $categories, 60 * 60 * 6);
+//        }
+
+        $categories = $this->categories_model->get_category_menu($this->clang);
+        $categories_onPromotion = $this->categories_model->get_category_onPromotion($this->clang);
+        $categories = categories_map($categories);
+        $this->data['categories'] = $categories;
+        $this->data['categories_onPromotion'] = $categories_onPromotion;
+
     }
 }

@@ -1,7 +1,11 @@
 <?php
-
+if (isset($count_order))
+    $order_count = '<span class="label label-sm label-danger">' . count($count_order) . '</span>';
+else
+    $order_count = '';
 $sidebar_menu = array(
     'menu' => array('name' => lang("Menu"), 'ico' => '<i class="fa fa-bars"></i>'),
+    'orders' => array('name' => 'Заказы '.$order_count, 'ico' => '<i class="fa fa-shopping-cart"></i>'),
     'all_for_products' => array('name' => lang('Products'), 'ico' => '<i class="fa fa-shopping-cart"></i>',
         'childs' => array(
             'products' => array('name' => lang('Products'), 'ico' => '<i class="fa fa-shopping-cart"></i>'),
@@ -9,6 +13,7 @@ $sidebar_menu = array(
             'filters' => array('name' => lang('Filters'), 'ico' => '<i class="fa fa-filter"></i>'),
             'filter_groups' => array('name' => lang('Filter groups'), 'ico' => '<i class="fa fa-filter"></i>'),
         )),
+    'articles' => array('name' => lang("Articles"), 'ico' => '<i class="fa fa-list"></i>'),
     'slider' => array('name' => lang("Slider"), 'ico' => '<i class="fa fa-image"></i>'),
     'benefits' => array('name' => lang("Benefits"), 'ico' => '<i class="fa fa-cogs"></i>'),
     'constants' => array('name' => lang("Constants"), 'ico' => '<i class="fa fa-globe"></i>')

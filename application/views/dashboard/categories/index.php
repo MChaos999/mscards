@@ -192,6 +192,7 @@
                                 <th> <?=lang('Name')?></th>
                                 <th width="180"></th>
                                 <th width="180"></th>
+                                <th width="180"></th>
                                 <th width="305"> <?=lang('Action')?></th>
                             </tr>
                             </thead>

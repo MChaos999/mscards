@@ -63,7 +63,7 @@
                                             <?if(!empty($filter_groups)){?>
                                                 <select name="filter_group_id" class="form-control" required>
                                                     <? foreach($filter_groups as $filter_group){?>
-                                                        <option <?=($filter_group->id == $item->filter_group_id) ? "selected" : "" ?> value="<?=$filter_group->id?>"><?=$filter_group->{'title'.get_language_for_admin(true)}?></option>
+                                                        <option <?=($filter_group->id == $item->filter_group_id) ? "selected" : "" ?> value="<?=$filter_group->id?>"><?=$filter_group->{'title'.get_language_for_list(true)}?></option>
                                                     <?}?>
                                                 </select>
                                             <?}?>

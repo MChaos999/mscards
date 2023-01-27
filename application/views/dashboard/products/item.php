@@ -67,13 +67,19 @@
                             <a href="#tab_1_3" data-toggle="tab"><?=lang('Filters')?></a>
                         </li>
                         <li>
-                            <a href="#tab_1_4" data-toggle="tab"><?=lang('Media')?></a>
+                            <a href="#tab_1_4" data-toggle="tab"><?=lang('Images')?></a>
                         </li>
                         <li>
                             <a href="#tab_1_5" data-toggle="tab"><?=lang('Price')?></a>
                         </li>
                         <li>
+                            <a href="#tab_1_7" data-toggle="tab"><?=lang('Options')?></a>
+                        </li>
+                        <li>
                             <a href="#tab_1_6" data-toggle="tab"><?=lang('Related products')?></a>
+                        </li>
+                        <li>
+                            <a href="#tab_1_8" data-toggle="tab"><?=lang('More products')?></a>
                         </li>
                     </ul>
                     <div class="tab-content">
@@ -94,7 +100,7 @@
                                             <td>
                                                 <select name="filter_group_id" class="form-control" required>
                                                     <?php foreach($filter_groups as $filter_group){?>
-                                                        <option <?=($filter_group->id == $item->filter_group_id) ? "selected" : "" ?> value="<?=$filter_group->id?>"><?=$filter_group->{'title'.get_language_for_admin(true)}?></option>
+                                                        <option <?=($filter_group->id == $item->filter_group_id) ? "selected" : "" ?> value="<?=$filter_group->id?>"><?=$filter_group->{'title'.get_language_for_list(true)}?></option>
                                                     <?php }?>
                                                 </select>
                                             </td>
@@ -146,6 +152,47 @@
                                                    value="<?= $item->qty?>">
                                         </td>
                                     </tr>
+                                    <?php foreach (language(true) as $lang) { ?>
+                                        <tr>
+                                            <td width="200"><?= lang('Promotion Info') ?> <?= strtoupper($lang) ?></td>
+                                            <td>
+                                                <input type="text" name="promoInfo<?= strtoupper($lang) ?>"
+                                                       value="<?= $item->{'promoInfo'.strtoupper($lang)} ?>"
+                                                       class="form-control">
+                                            </td>
+                                        </tr>
+                                    <?php } ?>
+                                    <?php foreach (language(true) as $lang) { ?>
+                                    <tr>
+                                        <td width="200"><?= lang('Doc PDF') ?> <?= strtoupper($lang) ?></td>
+                                        <td>
+                                            <input type="file" name="pdf<?= strtoupper($lang) ?>"
+                                                   id="offers[<?= $item->id ?>][pdf<?= strtoupper($lang) ?>]"
+                                                   class="form-control">
+                                            <div class="note note-warning"
+                                                 style="margin-bottom: 0px; margin-top: 10px;">
+                                                <p>
+                                                    <?=lang('Allowable sizes')?> : 50МБ
+                                                </p>
+                                                <?php if (!empty($item->{'pdf'.strtoupper($lang)})) { ?>
+                                                    <p class="mt-element-card">
+                                                        <a href="/public/products/<?= $item->{'pdf'.strtoupper($lang)} ?>" class="doc_view">
+                                                            Посмотреть документ
+                                                        </a>
+                                                        <a class="btn red mine_clear_file"
+                                                           data-table="products"
+                                                           data-id="<?= $item->id ?>"
+                                                           data-col="pdf"
+                                                           data-lang="<?= strtoupper($lang) ?>"
+                                                           href="javascript:;">
+                                                            <i class="fa fa-ban"></i>
+                                                        </a>
+                                                    </p>
+                                                <?php } ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php } ?>
                                     <tr>
                                         <td width="200">&nbsp;</td>
                                         <td>
@@ -167,7 +214,34 @@
                                                     <option value='<?= $product->id ?>'
                                                         <?= in_array($product->id, $related_products) ? 'selected' : '' ?>>
                                                         <?php $code = !empty($product->code) ? $product->code . " - " : '' ?>
-                                                        <?= $code . trim($product->{'title'.get_language_for_admin(true)}) ?>
+                                                        <?= $code . trim($product->{'title'.get_language_for_list(true)}) ?>
+                                                    </option>
+                                                <?php } ?>
+                                            <?php } ?>
+                                        </select>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                            <br>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <button type="submit" class="btn green"><i class="fa fa-check"></i>
+                                        <?=lang('Edit')?>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="tab_1_8">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <?php if(!empty($products)) { ?>
+                                        <select multiple="multiple" id="my-select_more" name="more_products[]">
+                                            <?php foreach($products as $product) { ?>
+                                                <?php if($product->id != $item->id) { ?>
+                                                    <option value='<?= $product->id ?>'
+                                                        <?= in_array($product->id, $more_products) ? 'selected' : '' ?>>
+                                                        <?php $code = !empty($product->code) ? $product->code . " - " : '' ?>
+                                                        <?= $code . trim($product->{'title'.get_language_for_list(true)}) ?>
                                                     </option>
                                                 <?php } ?>
                                             <?php } ?>
@@ -269,7 +343,7 @@
                                                 <input id="pq<?=$key?>" type="text" value="<?=$bulk->qty?>" name="product_prices[<?=$key?>][qty]" class="form-control" readonly>
                                             </label>
                                             <label for="pp<?=$key?>">
-                                                <?=lang('Price')?>
+                                                <?=lang('Price')?> <?=lang('buc')?>
                                                 <input id="pp<?=$key?>" type="text" value="<?=@$product_prices[$bulk->qty]?>" name="product_prices[<?=$key?>][price]" class="form-control">
                                             </label>
                                         </div>
@@ -280,6 +354,83 @@
                                         <?=lang('Edit')?>
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="tab_1_7">
+                            <div class="table-scrollable">
+                                <table class="table table-bordered table-striped table-hover">
+                                    <tbody>
+                                    <tr>
+                                        <td width="200">Добавить Опции</td>
+                                        <td>
+                                            <button class="btn green check_characters" id="add_variable"><i
+                                                        class="fa fa-plus"></i> <?=lang('Add')?>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <table class="table table-bordered table-striped table-hover">
+                                    <tbody id="table_variable">
+
+                                    <?php if (!empty($item->options)) {
+                                        foreach ($item->options as $option) {
+                                            ?>
+                                            <tr id="variable<?= $option->id ?>">
+                                                <td width="50">
+                                                    Сортировка
+                                                    <input type="text" class="form-control"
+                                                           value="<?= $option->sorder ?>"
+                                                           name="options[<?= $option->id ?>][sorder]">
+                                                </td>
+                                                <td  >
+                                                    Название RO
+                                                    <input type="text" class="form-control"
+                                                           value="<?= $option->titleRO ?>"
+                                                           name="options[<?= $option->id ?>][titleRO]">
+                                                </td>
+                                                <td  >
+                                                    Название EN
+                                                    <input type="text" class="form-control"
+                                                           value="<?= $option->titleEN ?>"
+                                                           name="options[<?= $option->id ?>][titleEN]">
+                                                </td>
+                                                <td  width="150">
+                                                    Цена
+                                                    <input type="text" class="form-control"
+                                                           value="<?= $option->price ?>"
+                                                           name="options[<?= $option->id ?>][price]">
+                                                </td>
+                                                <td width="120">
+                                                    Активен
+                                                    <input type="checkbox" class="form-control" style="width: 25px;height: 25px;"
+                                                           value="1" <?= $option->isShown == 1?'checked':'' ?>
+                                                           name="options[<?= $option->id ?>][isShown]">
+                                                </td>
+                                                <td width="120">
+                                                    <a onclick="DeleteVariable(<?= $option->id ?>)"
+                                                       class="btn btn-xs default btn-editable red-stripe"
+                                                       style="margin-top: 15px;">
+                                                        <i class="glyphicon glyphicon-remove-circle"></i> Удалить
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        <?php }
+                                    } ?>
+                                    </tbody>
+                                </table>
+                                <table class="table table-bordered table-striped table-hover">
+                                    <tbody>
+                                    <tr>
+                                        <td width="200">&nbsp;</td>
+                                        <td>
+                                            <button type="submit" class="btn green check_characters"><i
+                                                        class="fa fa-check"></i> Изменить
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
             </form>
@@ -300,7 +451,7 @@
                                                         <div>
                                                             <?php if($key==0){?><span><?=$filter->title?> <?=strtoupper($lang)?></span><?php }?>
                                                             <input type="text" value="<?=$temp["value".strtoupper($lang)]?>"
-                                                                   name="filters[<?=$filter->id?>][<?=$key?>][value<?=strtoupper($lang)?>]" class="form-control" required>
+                                                                   name="filters[<?=$filter->id?>][<?=$key?>][value<?=strtoupper($lang)?>]" class="form-control">
                                                         </div>
                                                     <?php }?>
                                                     <?php if($key > 0){?>
@@ -476,6 +627,40 @@
             }
         });
     });
+
+    $('#add_variable').on('click', function () {
+        $.ajax({
+            url: '/cp/products/add_variable/', // путь к обработчику
+            type: 'POST', // метод отправки
+            data: {id: "<?=$item->id?>"},
+            success: function (data) {
+                console.log("УСПЕХ"); // выводим сообщение в консоль
+                $("#table_variable").prepend(data);
+            },
+            error: function (data) {
+                console.log(data); // выводим ошибку в консоль
+            }
+        });
+        return false;
+    });
+
+    function DeleteVariable(id) {
+        var tbid = '#variable' + id;
+        if (confirm('Вы уверены, что хотите удалить этот элемент?')) {
+            $.ajax({
+                url: '/cp/products/add_variable_delete/', // путь к обработчику
+                type: 'POST', // метод отправки
+                data: {id: id},
+                success: function (data) {
+                    console.log("УСПЕХ"); // выводим сообщение в консоль
+                    $(tbid).remove();
+                },
+                error: function (data) {
+                    console.log(data); // выводим ошибку в консоль
+                }
+            });
+        }
+    }
 </script>
 
 <style>

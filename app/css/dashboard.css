@@ -136,5 +136,14 @@
 }
 
 .tr-flex input {
-    max-width: 80px;
+    max-width: 280px;
+}
+.disabled {
+    position: relative;
+}
+.disabled::after{
+    content: ' ';
+    position: absolute;
+    width: 100%;
+    height: 100%;
 }

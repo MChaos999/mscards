@@ -67,7 +67,7 @@
                                                     <?if(!empty($filter_groups)){?>
                                                         <select name="filter_group_id" class="form-control" required>
                                                             <? foreach($filter_groups as $filter_group){?>
-                                                                <option value="<?=$filter_group->id?>"><?=$filter_group->{'title'.get_language_for_admin(true)}?></option>
+                                                                <option value="<?=$filter_group->id?>"><?=$filter_group->{'title'.get_language_for_list(true)}?></option>
                                                             <?}?>
                                                         </select>
                                                     <?}?>
@@ -122,7 +122,7 @@
                     <div class="portlet-title">
                         <div class="caption">
                             <i class="icon-puzzle font-grey-gallery"></i>
-                            <span class="caption-subject bold font-grey-gallery uppercase"> <?= $filter_group->{'title'.get_language_for_admin(true)} ?> </span>
+                            <span class="caption-subject bold font-grey-gallery uppercase"> <?= $filter_group->{'title'.get_language_for_list(true)} ?> </span>
                         </div>
                     </div>
                     <div class="portlet-body">

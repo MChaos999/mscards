@@ -49,7 +49,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | Examples:	my-controller/index	-> my_controller/index
 |		my-controller/my-method	-> my_controller/my_method
 */
-$langs_array = array('ru', 'ro', 'en');
+$langs_array = array('ro', 'en');
 //$CI = &get_instance();
 //$langs_array = $CI->language();
 $langs = '(' . implode('|', $langs_array) . ')';
@@ -59,8 +59,35 @@ $route['default_controller'] = 'pages';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
+
+/* Ajax */
+$route['cart_add'] = 'ajax/cart_add';
+$route['cart/delete'] = 'ajax/cart_delete';
+$route['cart/update_cart'] = 'ajax/cart_update';
+
 /* Frontend */
 $route[$langs] = "pages/index";
+
+$route[$langs.'/(despre_noi|about_us)'] = "pages/about_us";
+
+$route[$langs.'/(contacte|contacts)'] = "pages/contacts";
+
+$route[$langs.'/(carduri_de_plastic|plastic_cards)'] = "frontend/cards/index";
+
+$route[$langs.'/(blog|blog)'] = "frontend/articles/index";
+$route[$langs.'/(blog|blog)/:any'] = "frontend/articles/item";
+
+$route[$langs.'/(cautare|search)'] = "frontend/search/index";
+$route[$langs.'/(search|search)/item'] = "frontend/search/search";
+
+$route[$langs.'/(cosul|basket)'] = "frontend/basket/index";
+$route[$langs.'/(checkout|checkout)'] = "frontend/basket/checkout";
+$route[$langs.'/(success|success)'] = "frontend/basket/success";
+
+$route[$langs.'/(catalog|catalog)'] = "frontend/catalog/index";
+$route[$langs.'/(catalog|catalog)/:any'] = "frontend/catalog/category";
+$route[$langs.'/(catalog|catalog)/:any/:any'] = "frontend/catalog/item";
+$route[$langs.'/(filter_products|filter_products)'] = "frontend/catalog/filter";
 
 /* Default Routing */
 $route[$langs . '/:any/:any/:any/:any/:any'] = 'pages/text_pages';

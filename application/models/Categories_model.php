@@ -9,6 +9,41 @@ class Categories_model extends BaseModel
         parent::__construct();
     }
 
+    public function get_category_menu($lang)
+    {
+        if (empty($lang)) return false;
+        $this->db->select("            
+            id as id,
+            parent_id as parent_id,
+            level as level,
+            onMain as onMain,
+            title$lang as title,
+            uri$lang as uri,
+            img as img,
+            ");
+        $this->db->where('isShown', 1);
+        $this->db->order_by('sorder ASC, id DESC');
+        return $this->db->get($this->tblname)->result();
+    }
+
+    public function get_category_onPromotion($lang)
+    {
+        if (empty($lang)) return false;
+        $this->db->select("            
+            id as id,
+            parent_id as parent_id,
+            level as level,
+            onMain as onMain,
+            title$lang as title,
+            uri$lang as uri,
+            img as img,
+            ");
+        $this->db->where('isShown', 1);
+        $this->db->where('onPromotion', 1);
+        $this->db->order_by('sorder ASC, id DESC');
+        return $this->db->get($this->tblname)->result();
+    }
+
     public function get_categories($lang = false) {
         if (empty($lang)) return false;
 
@@ -31,6 +66,26 @@ class Categories_model extends BaseModel
         ");
         $this->db->where('isShown', 1);
         $this->db->where("has_products", 1);
+        $this->db->order_by('sorder ASC, ID DESC');
+        $response = $this->db->get('categories')->result();
+
+        return $response;
+    }
+
+    public function get_categories_home($lang = false) {
+        if (empty($lang)) return false;
+
+        $this->db->select("
+            id as id,
+            parent_id as parent_id,
+            level as level,
+            onMain as onMain,
+            title$lang as title,
+            uri$lang as uri,
+            img as img,
+        ");
+        $this->db->where('isShown', 1);
+        $this->db->where("onMain", 1);
         $this->db->order_by('sorder ASC, ID DESC');
         $response = $this->db->get('categories')->result();
 
@@ -94,6 +149,22 @@ class Categories_model extends BaseModel
         $response = $this->db->get('categories')->row();
 
         return $response;
+    }
+
+    public function get_category_children($lang, $id)
+    {
+        if (empty($lang)) return false;
+
+        $this->db->select("
+            id as id,
+            title$lang as title, 
+            uri$lang as uri,
+            parent_id as parent_id, 
+        ");
+        $this->db->where('isShown', 1);
+        $this->db->where("parent_id", $id);
+        $items =  $this->db->get($this->tblname)->result();
+        return $items;
     }
 
     public function get_category_by_id($lang = false, $id) {

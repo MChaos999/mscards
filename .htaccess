@@ -3,7 +3,7 @@ RewriteEngine on
 
 Options -Indexes
 
-RewriteCond $1 !^(index\.php|static|ckeditor|kcfinder|robots\.txt|public|dist|favicon.\ico|pmadm)
+RewriteCond $1 !^(index\.php|static|ckeditor|kcfinder|robots\.txt|public|dist|favicon.\ico|pmadm|app)
 RewriteRule ^(.*)$ /index.php/$1 [L]
 
 

@@ -1,13 +1,17 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class Products_model extends BaseModel {
+class Products_model extends BaseModel
+{
     protected $tblname = 'products';
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
     }
-    public function get_products($lang) {
+
+    public function get_products($lang)
+    {
         if (empty($lang)) return false;
         $this->db->select("
             id as id,
@@ -31,7 +35,9 @@ class Products_model extends BaseModel {
         return $response;
     }
 
-    public function get_main_products($lang) {
+    public function get_products_promo($lang)
+    {
+
         if (empty($lang)) return false;
 
         $this->db->select("
@@ -39,351 +45,526 @@ class Products_model extends BaseModel {
             $this->tblname.code as code,
             $this->tblname.category_id as category_id,
             $this->tblname.uri$lang as uri,
-            $this->tblname.title$lang as title,
-            $this->tblname.desc$lang as desc,
-            $this->tblname.text$lang as text,
-            $this->tblname.price as price,
-            $this->tblname.discounted_price as discounted_price,
-            $this->tblname.isToday as isToday,
-            $this->tblname.isPopular as isPopular,
-            $this->tblname.isNew as isNew,
-            $this->tblname.onMain as onMain,
+            $this->tblname.title$lang as title,   
+            $this->tblname.promoInfo$lang as promoInfo,   
             $this->tblname.isShown as isShown,
+             (SELECT product_images.img FROM product_images WHERE product_images.product_id=$this->tblname.id LIMIT 1) as img,
+             (SELECT categories.uri$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_uri,
+             (SELECT categories.title$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_title,
         ");
-        $this->db->join("categories", "categories.id = $this->tblname.category_id", "right");
         $this->db->where("$this->tblname.isShown", 1);
-        $this->db->where("$this->tblname.onMain", 1);
-        $this->db->where("$this->tblname.price > 0");
-        $this->db->where("$this->tblname.qty > 0");
-        $this->db->limit(6);
-        $this->db->order_by("$this->tblname.sorder ASC, $this->tblname.ID DESC");
-        $response = $this->db->get($this->tblname)->result();
-
+        $this->db->where("$this->tblname.promoInfo$lang !=", '');
+        $this->db->limit(10);
+        $response = $this->db->get("$this->tblname")->result();
+//        dump($this->db->last_query());
+        foreach ($response as $product) {
+            $price = $this->db->select("price as price")->where('product_id', $product->id)->get('product_prices')->row();
+            if (!empty($price)) $product->price = $price->price;
+        }
         return $response;
     }
 
-    public function get_products_for_cateogry($lang, $category_id = 0, $ids = array(), $conditions=array()) {
-        if ((empty($category_id) && empty($ids)) || empty($lang)) return false;
+    public function findFirstCart($id)
+    {
+        $id = (int)$id;
+        $this->db->select("
+            $this->tblname.id as id,
+            $this->tblname.code as code,
+            $this->tblname.qty as qty,
+            $this->tblname.category_id as category_id,
+            $this->tblname.uriRO as uriRO,
+            $this->tblname.titleRO as titleRO,   
+            $this->tblname.isShown as isShown, 
+        ");
+        $item = $this->db->where('id', $id)->get($this->tblname)->row();
+        if (!empty($item)) {
+            return $item;
+        } else {
+            return false;
+        }
+    }
+
+    public function product_item_cart($lang = false, $rowid)
+    {
+        $product_id = $this->db->select('product_id')->where('rowid', $rowid)->get('shop_cart_items')->row();
 
         $this->db->select("
             $this->tblname.id as id,
             $this->tblname.code as code,
             $this->tblname.category_id as category_id,
-            $this->tblname.uri$lang as uri,
+            $this->tblname.uri$lang as uri, 
             $this->tblname.title$lang as title,
-            $this->tblname.desc$lang as desc,
-            $this->tblname.text$lang as text,
+            $this->tblname.promoInfo$lang as promoInfo,   
+            $this->tblname.qty as qty,       
+            $this->tblname.isShown as isShown,  
+             (SELECT product_images.img FROM product_images WHERE product_images.product_id=$this->tblname.id LIMIT 1) as img,
+             (SELECT categories.uri$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_uri,
+             (SELECT categories.title$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_title,
+        ");
+        $this->db->where('isShown', 1);
+        $this->db->where("id", $product_id->product_id);
+        $product = $this->db->get($this->tblname)->row();
+        $price = $this->db->select("price as price")->where('product_id', $product->id)->get('product_prices')->row();
+        if (!empty($price)) $product->price = $price->price;
+        return $product;
+    }
+
+    public function get_product_by_uri($lang, $uri)
+    {
+        if (empty($lang)) {
+            return false;
+        }
+        $this->db->select("
+            $this->tblname.id as id,
+            $this->tblname.code as code,
+            $this->tblname.category_id as category_id,
+            $this->tblname.uri$lang as uri,
+            $this->tblname.uriRO as uriRO,
+            $this->tblname.uriEN as uriEN,
+            $this->tblname.title$lang as title,   
+            $this->tblname.text$lang as text,   
+            $this->tblname.promoInfo$lang as promoInfo,   
+            $this->tblname.qty as qty,   
+            $this->tblname.pdf$lang as pdf,   
+            $this->tblname.isShown as isShown, 
             $this->tblname.seoTitle$lang as seo_title,
             $this->tblname.seoKeywords$lang as seo_keywords,
             $this->tblname.seoDesc$lang as seo_desc,
-            $this->tblname.price as price,
-            $this->tblname.discounted_price as discounted_price,
-            $this->tblname.isToday as isToday,
-            $this->tblname.isPopular as isPopular,
-            $this->tblname.isNew as isNew,
-            $this->tblname.isShown as isShown,
-            $this->tblname.onMain as onMain,
-            $this->tblname.sorder as sorder,
+             (SELECT product_images.img FROM product_images WHERE product_images.product_id=$this->tblname.id LIMIT 1) as img,
+             (SELECT categories.uri$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_uri,
+             (SELECT categories.title$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_title,
         ");
-        $this->db->join("categories", "categories.id = $this->tblname.category_id", "left");
-        $this->db->where("categories.isShown", 1);
-        $this->db->where("$this->tblname.price > 0");
-        $this->db->where("$this->tblname.qty > 0");
-        $this->db->where("$this->tblname.isShown", 1);
-        if(!empty($category_id)) {
-            $this->db->where_in("$this->tblname.category_id", (is_array($category_id) ? $category_id : array($category_id)));
+        $this->db->where('isShown', 1);
+        $this->db->where_in("uri$lang", $uri);
+        $product = $this->db->get($this->tblname)->row();
+        $price = $this->db->select("price as price")->where('product_id', $product->id)->get('product_prices')->row();
+        if (!empty($price)) $product->price = $price->price;
+        return $product;
+    }
+
+    public function get_products_options($lang, $id)
+    {
+        if (empty($lang)) {
+            return false;
         }
-        if(!empty($ids)) {
+        $this->db->select(" 
+        id as id,
+        product_id as product_id,
+        title$lang as title,
+        price as price,
+        ");
+        $this->db->where('isShown', 1);
+        $this->db->where('product_id', $id);
+        $product = $this->db->get('products_options')->result();
+        return $product;
+    }
+
+    public function get_option_info($id)
+    {
+        $this->db->select(" id as id, price as price");
+        $this->db->where('id', $id);
+        $option = $this->db->get('products_options')->row();
+        return $option;
+    }
+
+    public function get_products_prices($id)
+    {
+        $this->db->select("*");
+        $this->db->where('product_id', $id);
+        $product = $this->db->get('product_prices')->result();
+        return $product;
+    }
+
+    public function get_products_related($lang, $id)
+    {
+        if (empty($lang)) {
+            return false;
+        }
+        $this->db->select("");
+        $this->db->where('product_id', $id);
+        $related_products = $this->db->get('related_products')->result();
+        $ids = array();
+        foreach ($related_products as $pr) {
+            $ids[] = $pr->related_id;
+        }
+
+        if (!empty($ids)) {
+            $this->db->select("
+            $this->tblname.id as id,
+            $this->tblname.code as code,
+            $this->tblname.category_id as category_id,
+            $this->tblname.uri$lang as uri,
+            $this->tblname.title$lang as title,   
+            $this->tblname.promoInfo$lang as promoInfo,   
+            $this->tblname.isShown as isShown,
+             (SELECT product_images.img FROM product_images WHERE product_images.product_id=$this->tblname.id LIMIT 1) as img,
+             (SELECT categories.uri$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_uri,
+             (SELECT categories.title$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_title,
+        ");
+            $this->db->where("$this->tblname.isShown", 1);
             $this->db->where_in("$this->tblname.id", $ids);
+            $this->db->offset(0);
+            $this->db->limit(10);
+            $this->db->order_by("sorder ASC, id DESC");
+
+            $products = $this->db->get($this->tblname)->result();
+            foreach ($products as $product) {
+                $price = $this->db->select("price as price")->where('product_id', $product->id)->get('product_prices')->row();
+                if (!empty($price)) $product->price = $price->price;
+            }
+            return $products;
+        } else {
+            return false;
+        }
+    }
+
+    public function get_products_more($lang, $id)
+    {
+        if (empty($lang)) {
+            return false;
+        }
+        $this->db->select("");
+        $this->db->where('product_id', $id);
+        $related_products = $this->db->get('products_more')->result();
+        $ids = array();
+        foreach ($related_products as $pr) {
+            $ids[] = $pr->related_id;
         }
 
-        if (!empty($conditions['min_price'])) {
-            $this->db->where( "$this->tblname.price >=", $conditions['min_price']);
+        if (!empty($ids)) {
+            $this->db->select("
+            $this->tblname.id as id,
+            $this->tblname.code as code,
+            $this->tblname.category_id as category_id,
+            $this->tblname.uri$lang as uri,
+            $this->tblname.title$lang as title,   
+            $this->tblname.promoInfo$lang as promoInfo,   
+            $this->tblname.isShown as isShown,
+             (SELECT product_images.img FROM product_images WHERE product_images.product_id=$this->tblname.id LIMIT 1) as img,
+             (SELECT categories.uri$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_uri,
+             (SELECT categories.title$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_title,
+        ");
+            $this->db->where("$this->tblname.isShown", 1);
+            $this->db->where_in("$this->tblname.id", $ids);
+            $this->db->offset(0);
+            $this->db->limit(10);
+            $this->db->order_by("sorder ASC, id DESC");
+
+            $products = $this->db->get($this->tblname)->result();
+            foreach ($products as $product) {
+                $price = $this->db->select("price as price")->where('product_id', $product->id)->get('product_prices')->row();
+                if (!empty($price)) $product->price = $price->price;
+            }
+            return $products;
+        } else {
+            return false;
         }
-        if (!empty($conditions['max_price'])) {
-            $this->db->where( "$this->tblname.price <=" ,$conditions['max_price']);
+    }
+
+
+    public function get_all_products()
+    {
+        $this->db->select("id,category_id");
+        $this->db->where('isShown', 1);
+        return $this->db->get($this->tblname)->result();
+    }
+    public function get_products_pag($lang, $offset, $limit, $sort = '')
+    {
+        if (empty($lang)) {
+            return false;
+        }
+        $this->db->select("
+            $this->tblname.id as id,
+            $this->tblname.code as code,
+            $this->tblname.category_id as category_id,
+            $this->tblname.uri$lang as uri,
+            $this->tblname.title$lang as title,   
+            $this->tblname.promoInfo$lang as promoInfo,   
+            $this->tblname.isShown as isShown,
+             (SELECT product_images.img FROM product_images WHERE product_images.product_id=$this->tblname.id LIMIT 1) as img,
+             (SELECT categories.uri$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_uri,
+             (SELECT categories.title$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_title,
+        ");
+        $this->db->where("$this->tblname.isShown", 1);
+        $this->db->offset($offset);
+        $this->db->limit($limit);
+
+        if (!empty($sort)) {
+            if ($sort == 2) {
+                $this->db->order_by("views DESC, sorder ASC");
+            } elseif ($sort == 3) {
+                $this->db->order_by("created_at DESC, sorder ASC");
+            } else {
+                $this->db->order_by("price ASC, sorder ASC");
+            }
+        } else {
+            $this->db->order_by("sorder ASC, id DESC");
         }
 
-        if(!empty($conditions['limit'])) {
-            $this->db->limit($conditions['limit'], $conditions['start']);
-        }
-        if(!empty($conditions['sort'])) {
-            $this->db->order_by($conditions['sort']);
+        $products = $this->db->get($this->tblname)->result();
+        foreach ($products as $product) {
+            $price = $this->db->select("price as price")->where('product_id', $product->id)->get('product_prices')->row();
+            if (!empty($price)) $product->price = $price->price;
         }
 
+        return $products;
+    }
+
+    public function get_all_products_search($search)
+    {
+        $this->db->select("id,category_id");
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->or_like("$this->tblname.titleRO", $search);
+            $this->db->or_like("$this->tblname.titleEN", $search);
+            $this->db->or_like("$this->tblname.code", $search);
+            $this->db->group_end();
+        }
+        $this->db->where('isShown', 1);
+        return $this->db->get($this->tblname)->result();
+    }
+    public function get_products_pag_search($lang, $offset, $limit, $sort = 4, $search)
+    {
+        if (empty($lang)) {
+            return false;
+        }
+        $this->db->select("
+            $this->tblname.id as id,
+            $this->tblname.code as code,
+            $this->tblname.category_id as category_id,
+            $this->tblname.uri$lang as uri,
+            $this->tblname.title$lang as title,   
+            $this->tblname.promoInfo$lang as promoInfo,   
+            $this->tblname.isShown as isShown,
+             (SELECT product_images.img FROM product_images WHERE product_images.product_id=$this->tblname.id LIMIT 1) as img,
+             (SELECT categories.uri$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_uri,
+             (SELECT categories.title$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_title,
+        ");
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->or_like("$this->tblname.titleRO", $search);
+            $this->db->or_like("$this->tblname.titleEN", $search);
+            $this->db->or_like("$this->tblname.code", $search);
+            $this->db->group_end();
+        }
+        $this->db->where("$this->tblname.isShown", 1);
+        $this->db->offset($offset);
+        $this->db->limit($limit);
+
+        if ($sort == 1) {
+            $this->db->order_by("price ASC, $this->tblname.sorder ASC");
+        } elseif ($sort == 2) {
+            $this->db->order_by("price DESC, $this->tblname.sorder ASC");
+        } elseif ($sort == 3) {
+            $this->db->order_by("$this->tblname.promoInfo$lang DESC, $this->tblname.sorder ASC");
+        } else {
+            $this->db->order_by("$this->tblname.isPopular DESC, $this->tblname.sorder ASC");
+        }
+
+        $products = $this->db->get($this->tblname)->result();
+        foreach ($products as $product) {
+            $price = $this->db->select("price as price")->where('product_id', $product->id)->get('product_prices')->row();
+            if (!empty($price)) $product->price = $price->price;
+        }
+
+        return $products;
+    }
+
+    public function get_all_category_products($categories_id = array())
+    {
+        $this->db->select("id,category_id");
+        $this->db->where('isShown', 1);
+        $this->db->where_in('category_id', $categories_id);
+        return $this->db->get($this->tblname)->result();
+    }
+    public function get_category_products_pag($lang, $categories_id = array(), $offset, $limit, $sort = '')
+    {
+        if (empty($lang)) {
+            return false;
+        }
+        $this->db->select("
+            $this->tblname.id as id,
+            $this->tblname.code as code,
+            $this->tblname.category_id as category_id,
+            $this->tblname.uri$lang as uri,
+            $this->tblname.title$lang as title,   
+            $this->tblname.promoInfo$lang as promoInfo,   
+            $this->tblname.isShown as isShown,
+             (SELECT product_images.img FROM product_images WHERE product_images.product_id=$this->tblname.id LIMIT 1) as img,
+             (SELECT categories.uri$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_uri,
+             (SELECT categories.title$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_title,
+        ");
+        $this->db->where("$this->tblname.isShown", 1);
+        $this->db->where_in('category_id', $categories_id);
+        $this->db->offset($offset);
+        $this->db->limit($limit);
+
+        if (!empty($sort)) {
+            if ($sort == 2) {
+                $this->db->order_by("views DESC, sorder ASC");
+            } elseif ($sort == 3) {
+                $this->db->order_by("created_at DESC, sorder ASC");
+            } else {
+                $this->db->order_by("price ASC, sorder ASC");
+            }
+        } else {
+            $this->db->order_by("sorder ASC, id DESC");
+        }
+
+        $products = $this->db->get($this->tblname)->result();
+        foreach ($products as $product) {
+            $price = $this->db->select("price as price")->where('product_id', $product->id)->get('product_prices')->row();
+            if (!empty($price)) $product->price = $price->price;
+        }
+        return $products;
+    }
+
+    public function get_all_category_products_filter($lang, $categories_id = array(),$features = array(), $search = false)
+    {
+        $this->db->select("$this->tblname.id,$this->tblname.category_id");
+        if (!empty($features)) {
+            $this->db->join("product_filters_value", "product_filters_value.product_id=$this->tblname.id");
+            $this->db->where_in("product_filters_value.value$lang", $features);
+        }
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->or_like("$this->tblname.titleRO", $search);
+            $this->db->or_like("$this->tblname.titleEN", $search);
+            $this->db->or_like("$this->tblname.code", $search);
+            $this->db->group_end();
+        }
+        $this->db->where("$this->tblname.isShown", 1);
+        $this->db->where_in("$this->tblname.category_id", $categories_id);
         $this->db->group_by("$this->tblname.id");
         return $this->db->get($this->tblname)->result();
     }
-
-    public function get_products_count($category_id = 0, $ids = array(), $conditions=array()) {
-        if ( empty($category_id) && empty($ids) ) return false;
-
+    public function get_category_products_pag_filter($lang, $categories_id = array(), $offset, $limit, $features = array(), $sort = 4, $search = false)
+    {
+        if (empty($lang)) {
+            return false;
+        }
         $this->db->select("
             $this->tblname.id as id,
+            $this->tblname.code as code,
+            $this->tblname.category_id as category_id,
+            $this->tblname.uri$lang as uri,
+            $this->tblname.title$lang as title,   
+            $this->tblname.promoInfo$lang as promoInfo,   
+            $this->tblname.isShown as isShown,
+             (SELECT product_prices.price FROM product_prices WHERE product_prices.product_id=$this->tblname.id LIMIT 1) as price,
+             (SELECT product_images.img FROM product_images WHERE product_images.product_id=$this->tblname.id LIMIT 1) as img,
+             (SELECT categories.uri$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_uri,
+             (SELECT categories.title$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_title,
         ");
-        $this->db->join("categories", "categories.id = $this->tblname.category_id", "left");
-        $this->db->where("categories.isShown", 1);
-        if(!empty($category_id)) {
-            $this->db->where_in("$this->tblname.category_id", (is_array($category_id) ? $category_id : array($category_id)));
+        if (!empty($features)) {
+            $this->db->join("product_filters_value", "product_filters_value.product_id=$this->tblname.id");
+            $this->db->where_in("product_filters_value.value$lang", $features);
         }
-
-        if(!empty($ids)) {
-            $this->db->where_in("$this->tblname.id", $ids);
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->or_like("$this->tblname.titleRO", $search);
+            $this->db->or_like("$this->tblname.titleEN", $search);
+            $this->db->or_like("$this->tblname.code", $search);
+            $this->db->group_end();
         }
-        if (!empty($conditions['min_price'])) {
-            $this->db->where( "$this->tblname.price >=", $conditions['min_price']);
-        }
-        if (!empty($conditions['max_price'])) {
-            $this->db->where( "$this->tblname.price <=" ,$conditions['max_price']);
+        $this->db->where("$this->tblname.isShown", 1);
+        $this->db->where_in("$this->tblname.category_id", $categories_id);
+        $this->db->offset($offset);
+        $this->db->limit($limit);
+        if ($sort == 1) {
+            $this->db->order_by("price ASC, $this->tblname.sorder ASC");
+        } elseif ($sort == 2) {
+            $this->db->order_by("price DESC, $this->tblname.sorder ASC");
+        } elseif ($sort == 3) {
+            $this->db->order_by("$this->tblname.promoInfo$lang DESC, $this->tblname.sorder ASC");
+        } else {
+            $this->db->order_by("$this->tblname.isPopular DESC, $this->tblname.sorder ASC");
         }
         $this->db->group_by("$this->tblname.id");
-        $result = $this->db->get($this->tblname);
-        $count = $result->num_rows();
-        return $count;
-    }
-
-    public function get_product_count_for_subcategories($category_ids) {
-        $this->db->where_in("$this->tblname.category_id", $category_ids);
-        $result = $this->db->get($this->tblname);
-        $count = $result->num_rows();
-        return $count;
-    }
-
-    public function get_match($match) {
-        return $this->db->select('*')->like('title'.get_language_for_admin(true), $match)->order_by("sorder asc, id desc")->get($this->tblname)->result();
-    }
-
-    public function get_product_by_uri($lang, $uri) {
-        if (empty($lang) || empty($uri)) return false;
-
-        $this->db->select("
-            $this->tblname.id as id,
-            $this->tblname.code as code,
-            $this->tblname.category_id as category_id,
-            $this->tblname.uri$lang as uri,
-            $this->tblname.uriRO as uriRO,
-            $this->tblname.uriRU as uriRU,
-            $this->tblname.uriEN as uriEN,
-            $this->tblname.title$lang as title,
-            $this->tblname.desc$lang as desc,
-            $this->tblname.text$lang as text,
-            $this->tblname.seoTitle$lang as seo_title,
-            $this->tblname.seoKeywords$lang as seo_keywords,
-            $this->tblname.seoDesc$lang as seo_desc,
-            $this->tblname.price as price,
-            $this->tblname.discounted_price as discounted_price,
-            $this->tblname.isToday as isToday,
-            $this->tblname.isPopular as isPopular,
-            $this->tblname.isNew as isNew,
-            $this->tblname.onMain as onMain,
-            $this->tblname.isShown as isShown,
-        ");
-        $this->db->where("$this->tblname.price > 0");
-        $this->db->where("$this->tblname.qty > 0");
-        $this->db->where("$this->tblname.uri$lang", $uri);
-
-        $product = $this->db->get($this->tblname)->row();
-
-        if(!empty($product)) {
-            $filters = $this->db->select("
-                            product_filters_value.filter_id as filter_id, 
-                            product_filters_value.value$lang as value, 
-                            filters.title$lang as title,
-                            filters.filter_group_id as filter_group_id")
-                ->where('product_id', $product->id)
-                ->join('filters', 'product_filters_value.filter_id = filters.id', 'inner')
-                ->get('product_filters_value')
-                ->result();
-
-            $new = array();
-            foreach ($filters as $filter) {
-                $new[$filter->filter_id] = array(
-                    'filter_id' => $filter->filter_id,
-                    'value' => (isset($new[$filter->filter_id]['value'])) ? $new[$filter->filter_id]['value'].', '.$filter->value : $filter->value,
-                    'title' => $filter->title,
-                    'filter_group_id' => $filter->filter_group_id,
-                );
-            }
-
-            $product->filters = $new;
+        $products = $this->db->get($this->tblname)->result();
+        foreach ($products as $product) {
+            $price = $this->db->select("price as price")->where('product_id', $product->id)->get('product_prices')->row();
+            if (!empty($price)) $product->price = $price->price;
         }
-
-        return $product;
+        return $products;
     }
 
-    public function get_product_by_id($lang, $id) {
-        if (empty($lang) || empty($id)) return false;
-
-        $this->db->select("
-            $this->tblname.id as id,
-            $this->tblname.code as code,
-            $this->tblname.category_id as category_id,
-            $this->tblname.uri$lang as uri,
-            $this->tblname.uriRO as uriRO,
-            $this->tblname.uriRU as uriRU,
-            $this->tblname.uriEN as uriEN,
-            $this->tblname.title$lang as title,
-            $this->tblname.desc$lang as desc,
-            $this->tblname.text$lang as text,
-            $this->tblname.seoTitle$lang as seo_title,
-            $this->tblname.seoKeywords$lang as seo_keywords,
-            $this->tblname.seoDesc$lang as seo_desc,
-            $this->tblname.price as price,
-            $this->tblname.discounted_price as discounted_price,
-            $this->tblname.isToday as isToday,
-            $this->tblname.isPopular as isPopular,
-            $this->tblname.isNew as isNew,
-            $this->tblname.onMain as onMain,
-            $this->tblname.isShown as isShown,
-        ");
-        $this->db->where("$this->tblname.price > 0");
-        $this->db->where("$this->tblname.qty > 0");
-        $this->db->where("$this->tblname.id", $id);
-
-        $product = $this->db->get($this->tblname)->row();
-
-        return $product;
-    }
-
-    public function get_if_exist_product($id) {
-        if (empty($id)) return false;
-
-        $this->db->select("
-            $this->tblname.id as id,
-            $this->tblname.category_id as category_id,
-        ");
-        $this->db->where("$this->tblname.id", $id);
-
-        $product = $this->db->get($this->tblname)->row();
-
-        return $product;
-    }
-
-    public function get_recomended_products($lang, $ids) {
-        if (empty($lang) || empty($ids)) return false;
-
-        $this->db->select("
-            $this->tblname.id as id,
-            $this->tblname.code as code,
-            $this->tblname.category_id as category_id,
-            $this->tblname.uri$lang as uri,
-            $this->tblname.title$lang as title,
-            $this->tblname.desc$lang as desc,
-            $this->tblname.text$lang as text,
-            $this->tblname.seoTitle$lang as seo_title,
-            $this->tblname.seoKeywords$lang as seo_keywords,
-            $this->tblname.seoDesc$lang as seo_desc,
-            $this->tblname.price as price,
-            $this->tblname.discounted_price as discounted_price,
-            $this->tblname.isToday as isToday,
-            $this->tblname.isPopular as isPopular,
-            $this->tblname.isNew as isNew,
-            $this->tblname.onMain as onMain,
-            $this->tblname.isShown as isShown,
-        ");
-        $this->db->where("$this->tblname.isShown", 1);
-        $this->db->where("$this->tblname.price > 0");
-        $this->db->where_in("$this->tblname.id", $ids);
-//        $this->db->where("$this->tblname.category_id", $category_id);
-//        $this->db->where("$this->tblname.id !=", $product_id);
-//        $this->db->order_by('rand()');
-        $this->db->limit(4);
-        $response = $this->db->get('products')->result();
-
-        return $response;
-    }
-
-    public function get_next_product($lang, $category_id, $product_id) {
-        if (empty($lang) || empty($category_id) || empty($product_id)) return false;
-
-        $query = $this->db->select("uri$lang as uri")
-            ->where("id >", $product_id)
-            ->where("isShown", 1)
-            ->where("price > 0")
-            ->where("category_id", $category_id)
-            ->order_by('id asc')
-            ->get('products')->row();
-
-        if(empty($query)) {
-            $query = $this->db->select("uri$lang as uri")
-                ->where("id <", $product_id)
-                ->where("isShown", 1)
-                ->where("price > 0")
-                ->where("category_id", $category_id)
-                ->order_by('id asc')
-                ->get('products')->row();
-        }
-
-        return $query;
-
-
-    }
-
-    public function get_prev_product($lang, $category_id, $product_id) {
-        if (empty($lang) || empty($category_id) || empty($product_id)) return false;
-
-        $query = $this->db->select("uri$lang as uri")
-            ->where("id <", $product_id)
-            ->where("isShown", 1)
-            ->where("price > 0")
-            ->where("category_id", $category_id)
-            ->order_by('id desc')
-            ->get('products')->row();
-
-        if(empty($query)) {
-            $query = $this->db->select("uri$lang as uri")
-                ->where("id >", $product_id)
-                ->where("isShown", 1)
-                ->where("price > 0")
-                ->where("category_id", $category_id)
-                ->order_by('id desc')
-                ->get('products')->row();
-        }
-
-        return $query;
-    }
-
-    public function get_products_by_match($lang, $match) {
-
-        if(empty($lang) || empty($match)) return false;
-
-        $this->db->select("
-            $this->tblname.id as id,
-            $this->tblname.code as code,
-            $this->tblname.category_id as category_id,
-            $this->tblname.uri$lang as uri,
-            $this->tblname.title$lang as title,
-            $this->tblname.desc$lang as desc,
-            $this->tblname.text$lang as text,
-            $this->tblname.seoTitle$lang as seo_title,
-            $this->tblname.seoKeywords$lang as seo_keywords,
-            $this->tblname.seoDesc$lang as seo_desc,
-            $this->tblname.price as price,
-            $this->tblname.discounted_price as discounted_price,
-            $this->tblname.isToday as isToday,
-            $this->tblname.isPopular as isPopular,
-            $this->tblname.isNew as isNew,
-            $this->tblname.onMain as onMain,
-            $this->tblname.isShown as isShown,
-        ");
-        $this->db->join("categories", "categories.id = $this->tblname.category_id", "right");
-        $this->db->where("$this->tblname.isShown", 1);
-        $this->db->where("$this->tblname.price > 0");
-        $this->db->like("$this->tblname.title$lang", $match);
-        $this->db->or_like("$this->tblname.code", $match);
-        $this->db->limit(10);
-        $response = $this->db->get("$this->tblname")->result();
-
-        return $response;
-    }
-    public function update_nomenclatura($EAN, $price, $qty)
+    public function get_all_filter_products($lang, $categories_id = array(), $features = array(), $search = false)
     {
-        $data = [
-            'price' => $price,
-            'qty' => $qty,
-        ];
-        $this->db->where('EAN13', $EAN)->update($this->tblname, $data);
-        return $data;
+
+        $this->db->select("$this->tblname.id,$this->tblname.category_id"); 
+        if (!empty($features)) {
+            $this->db->join("product_filters_value", "product_filters_value.product_id=$this->tblname.id");
+            $this->db->where_in("product_filters_value.value$lang", $features);
+        }
+        if (!empty($categories_id)) {
+            $this->db->where_in("$this->tblname.category_id", $categories_id);
+        }
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->or_like("$this->tblname.titleRO", $search);
+            $this->db->or_like("$this->tblname.titleEN", $search);
+            $this->db->or_like("$this->tblname.code", $search);
+            $this->db->group_end();
+        }
+        $this->db->where("$this->tblname.isShown", 1);
+        $this->db->group_by("$this->tblname.id");
+        return $this->db->get($this->tblname)->result();
+    }
+    public function get_filter_products_pag($lang, $categories_id = array(), $offset, $limit, $features = array(), $sort = 4, $search = false)
+    {
+        if (empty($lang)) {
+            return false;
+        }
+        $this->db->select("
+            $this->tblname.id as id,
+            $this->tblname.code as code,
+            $this->tblname.category_id as category_id,
+            $this->tblname.uri$lang as uri,
+            $this->tblname.title$lang as title,   
+            $this->tblname.promoInfo$lang as promoInfo,   
+            $this->tblname.isShown as isShown,
+            (SELECT product_prices.price FROM product_prices WHERE product_prices.product_id=$this->tblname.id LIMIT 1) as price,
+             (SELECT product_images.img FROM product_images WHERE product_images.product_id=$this->tblname.id LIMIT 1) as img,
+             (SELECT categories.uri$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_uri,
+             (SELECT categories.title$lang FROM categories WHERE categories.id=$this->tblname.category_id) as cat_title,
+        ");
+
+        if (!empty($features)) {
+            $this->db->join("product_filters_value", "product_filters_value.product_id=$this->tblname.id");
+            $this->db->where_in("product_filters_value.value$lang", $features);
+        }
+        if (!empty($categories_id)) {
+            $this->db->where_in("$this->tblname.category_id", $categories_id);
+        }
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->or_like("$this->tblname.titleRO", $search);
+            $this->db->or_like("$this->tblname.titleEN", $search);
+            $this->db->or_like("$this->tblname.code", $search);
+            $this->db->group_end();
+        }
+        $this->db->where("$this->tblname.isShown", 1);
+
+        $this->db->offset($offset);
+        $this->db->limit($limit);
+
+        if ($sort == 1) {
+            $this->db->order_by("price ASC, $this->tblname.sorder ASC");
+        } elseif ($sort == 2) {
+            $this->db->order_by("price DESC, $this->tblname.sorder ASC");
+        } elseif ($sort == 3) {
+            $this->db->order_by("$this->tblname.promoInfo$lang DESC, $this->tblname.sorder ASC");
+        } else {
+            $this->db->order_by("$this->tblname.isPopular DESC, $this->tblname.sorder ASC");
+        }
+        $this->db->group_by("$this->tblname.id");
+        $products = $this->db->get($this->tblname)->result();
+        foreach ($products as $product) {
+            $price = $this->db->select("price as price")->where('product_id', $product->id)->get('product_prices')->row();
+            if (!empty($price)) $product->price = $price->price;
+        }
+        return $products;
     }
 
 }

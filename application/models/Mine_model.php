@@ -17,11 +17,12 @@ class Mine_model extends BaseModel
         return $this->db->where('id', $id)->update($tblname, array($col => ''));
     }
 
-    public function delete_file($tblname = false, $lang = false, $id = false)
+    public function delete_file($tblname = false, $lang = false, $id = false, $col = 'file')
     {
         if (empty($tblname) || empty($lang) || empty($id)) return false;
 
-        $file = 'file' . $lang;
+        $file = $col . $lang;
+
         $id = (int)$id;
 
         return $this->db->where('id', $id)->update($tblname, array($file => ''));

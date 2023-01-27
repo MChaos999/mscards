@@ -65,9 +65,9 @@
                                     <tr>
                                         <td width="200"><?=lang('Name')?> RU *</td>
                                         <td>
-                                            <input type="text" name="{'title'.get_language_for_admin(true)}"
+                                            <input type="text" name="{'title'.get_language_for_list(true)}"
                                                    class="form-control"
-                                                   value="<?= $item->{'title'.get_language_for_admin(true)} ?>"
+                                                   value="<?= $item->{'title'.get_language_for_list(true)} ?>"
                                                    required>
                                         </td>
                                     </tr>
@@ -181,9 +181,9 @@
                                         <td width="200"><?=lang('Headline')?> RU *</td>
                                         <td>
                                             <input type="text"
-                                                   name="seo{'title'.get_language_for_admin(true)}"
+                                                   name="seo{'title'.get_language_for_list(true)}"
                                                    class="form-control" required
-                                                   value="<?= $item->seo{'title'.get_language_for_admin(true)} ?>">
+                                                   value="<?= $item->seo{'title'.get_language_for_list(true)} ?>">
                                         </td>
                                     </tr>
                                     <tr>

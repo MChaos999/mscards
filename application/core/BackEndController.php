@@ -107,5 +107,6 @@ class BackEndController extends CI_Controller
         $this->data['del_path'] = $this->del_path;
         $this->data['site_url'] = $this->site_url;
         $this->data['table'] = strtolower($class);
+        $this->data['count_order'] = $this->db->select('id')->where('status','new')->get('orders')->result();
     }
 }

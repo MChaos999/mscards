@@ -47,7 +47,7 @@
     <!-- BEGIN CORE JAVASCRIPT -->
     <script src="/static/assets/global/plugins/jquery.min.js" type="text/javascript"></script>
     <!-- END CORE JAVASCRIPT -->
-    <link rel="stylesheet" href="/dist/css/dashboard.css?v=<?=time()?>">
+    <link rel="stylesheet" href="/app/css/dashboard.css?v=<?=time()?>">
 </head>
 
 <body class="page-header-fixed page-sidebar-closed-hide-logo page-container-bg-solid page-content-white page-md">
@@ -61,7 +61,7 @@
             <!-- BEGIN LOGO -->
             <div class="page-logo">
                 <a target="_blank" href="https://ilab.md">
-                    <img src="/dist/img/logoiwh.png" alt="logo" class="logo-default" style="width:86px;margin: 11px 0 0;"/> </a>
+                    <img src="/app/img/logoiwh.png" alt="logo" class="logo-default" style="width:86px;margin: 11px 0 0;"/> </a>
                 <div class="menu-toggler sidebar-toggler">
                     <span></span>
                 </div>
@@ -208,7 +208,7 @@
 <script src="/static/assets/layouts/global/scripts/quick-sidebar.min.js" type="text/javascript"></script>
 <script src="/static/assets/layouts/global/scripts/quick-nav.min.js" type="text/javascript"></script>
 <!-- END THEME LAYOUT SCRIPTS -->
-<script src="/dist/js/dashboard.js" async></script>
+<script src="/app/js/dashboard.js" async></script>
 <script src="/ckeditor/ckeditor.js" async></script>
 <!-- BENGIN PAGELOADER SCRIPT -->
 <script type="text/javascript">
@@ -222,6 +222,7 @@
 </script>
 <script type="text/javascript">
     $('#my-select').multiSelect();
+    $('#my-select_more').multiSelect();
 </script>
 <!-- END PAGELOADER SCRIPT -->
 

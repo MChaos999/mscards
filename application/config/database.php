@@ -73,14 +73,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $active_group = 'default';
 $query_builder = TRUE;
 
-if (in_array($_SERVER['SERVER_NAME'], array('mscards', '127.0.0.1', 'localhost'))) {
+if (in_array($_SERVER['SERVER_NAME'], array('mscards.loc', '127.0.0.1', 'localhost'))) {
 
 $db['default'] = array(
     'dsn' => '',
     'hostname' => 'localhost',
     'username' => 'root',
     'password' => 'root',
-    'database' => 'ilab_mscards',
+    'database' => 'mscards',
     'dbdriver' => 'mysqli',
     'dbprefix' => '',
     'pconnect' => FALSE,

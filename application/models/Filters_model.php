@@ -78,4 +78,31 @@ class Filters_model extends BaseModel {
 
         return $data;
     }
+
+    public function get_product_filters_value($lang, $product_id){
+        if (empty($lang) || empty($product_id)) return false;
+        $this->db->select("
+            filter_id as filter_id,
+            product_id as product_id,
+            value$lang as value,
+            (SELECT filters.title$lang FROM filters WHERE filters.id=product_filters_value.filter_id LIMIT 1) as filter_title,
+        ");
+        $this->db->where('product_id', $product_id);
+        return $this->db->get('product_filters_value')->result();
+    }
+
+    public function get_category_filters($lang, $category_id){
+        if (empty($lang) || empty($category_id)) return false;
+
+        $this->db->select("
+            category_id as category_id, 
+            filter_id as filter_id, 
+            title$lang as title,
+            values$lang as values,
+        ");
+        $this->db->where_in('category_id', $category_id);
+        $this->db->order_by('sorder ASC');
+        return $this->db->get('category_filters')->result();
+
+    }
 }

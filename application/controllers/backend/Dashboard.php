@@ -57,8 +57,9 @@ class Dashboard extends BackEndController
         $tblname = $this->input->post('table');
         $id = $this->input->post('id');
         $lang = $this->input->post('lang');
+        $col = $this->input->post('col');
 
-        $result = ($this->mine_model->delete_file($tblname, $lang, $id)) ? 200 : 500;
+        $result = ($this->mine_model->delete_file($tblname, $lang, $id, $col)) ? 200 : 500;
 
         $response['status'] = $result;
 

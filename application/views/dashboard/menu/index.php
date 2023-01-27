@@ -166,7 +166,7 @@
                                 <th width="180"></th>
                                 <th width="180"></th>
                                 <th width="190"></th>
-                                <th width="305"> <?=lang('Action')?></th>
+                                <th width="345"> <?=lang('Action')?></th>
                             </tr>
                             </thead>
                             <tbody>

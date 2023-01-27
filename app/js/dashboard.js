@@ -238,7 +238,8 @@ $(document).ready(function () {
             var id = self.attr('data-id');
             var table = self.attr('data-table');
             var lang = self.attr('data-lang');
-            $.post('/cp/delete_file/', {table: table, lang: lang, id: id}, function (data) {
+            var col = self.attr('data-col');
+            $.post('/cp/delete_file/', {table: table, lang: lang, id: id, col:col}, function (data) {
                 try {
                     response = JSON.parse(data);
                     if (response.status == 200) {
